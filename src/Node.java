@@ -21,6 +21,8 @@ public abstract class Node {
     private int receivePort;
     private int forwardPort;
 
+    private InetAddress multicastGroupInetAddress;
+
     // Use for node connections
     private ArrayList<Node> sourceNodes;
     private ArrayList<Node> destinationNodes;
@@ -30,13 +32,13 @@ public abstract class Node {
      *
      * @param routerID
      * @param role
-     * @param IPAddress
-     * @param receivingPacketRate
+     * @param stringAddressOfNode
+     * @param stringAddressOfMulticastGroup
      */
-    public Node(int routerID, int role, String IPAddress, int receivingPacketRate) throws UnknownHostException {
+    public Node(int routerID, int role, String stringAddressOfNode, String stringAddressOfMulticastGroup, int receivingPacketRate) throws UnknownHostException {
         this.routerID = routerID;
         this.role = role;
-        this.IPAddress = InetAddress.getByName(IPAddress);
+        this.IPAddress = InetAddress.getByName(stringAddressOfNode);
         this.receivingPacketRate = receivingPacketRate;
     }
 
@@ -48,7 +50,7 @@ public abstract class Node {
      * @param role
      * @param IPAddress
      */
-    public Node(int routerID, int role, String IPAddress) throws UnknownHostException {
+    public Node(int routerID, int role, String stringAddressOfNode, String stringAddressOfMulticastGroup) throws UnknownHostException {
         this(routerID, role, IPAddress, 0);
     }
 
@@ -114,6 +116,8 @@ public abstract class Node {
      */
     public void addDestinationNode(Node node, int sourcePort){
         destinationNodes.add(node);
+
+        InetAddress multicastGroupInetAddress = node.getIPAddress();
     }
 
     /**
