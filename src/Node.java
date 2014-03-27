@@ -1,4 +1,4 @@
-import java.net.Inet4Address;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -11,21 +11,19 @@ import java.util.Iterator;
  * and a list of methods for node connection
  *
  */
-public abstract class Node {
+public abstract class Node extends Thread {
 
-    private int routerID;               // Integer ID of router
-    private int role;                   // 0 for receiver, 1 for forwarder, 2 for source
-    private InetAddress IPAddress;      // IP Address specified in String notation
-    private int receivingPacketRate;    // The rate to receive packets
+    public static final int     GENERIC_PORT = 9876;        // Default listening port
+    public static final int     SOCKET_TIMEOUT = 100000;    // Timeout in miliseconds
 
-    private int receivePort;
-    private int forwardPort;
-
-    private InetAddress multicastGroupInetAddress;
+    private int                 mRouterID;                  // Integer ID of router
+    private int                 mRole;                      // 0 for receiver, 1 for forwarder, 2 for source
+    private InetAddress         mIPAddress;
+    private int                 mReceivingPacketRate;       // The rate to receive packets
 
     // Use for node connections
-    private ArrayList<Node> sourceNodes;
-    private ArrayList<Node> destinationNodes;
+    private ArrayList<Node>     sourceNodes;
+    private ArrayList<Node>     destinationNodes;
 
     /**
      * Primary node constructor.
@@ -33,51 +31,43 @@ public abstract class Node {
      * @param routerID
      * @param role
      * @param stringAddressOfNode
-     * @param stringAddressOfMulticastGroup
      */
-    public Node(int routerID, int role, String stringAddressOfNode, String stringAddressOfMulticastGroup, int receivingPacketRate) throws UnknownHostException {
-        this.routerID = routerID;
-        this.role = role;
-        this.IPAddress = InetAddress.getByName(stringAddressOfNode);
-        this.receivingPacketRate = receivingPacketRate;
+    public Node(int routerID, int role, String stringAddressOfNode, int receivingPacketRate) throws UnknownHostException {
+        mRouterID = routerID;
+        mRole = role;
+        mIPAddress = InetAddress.getByName(stringAddressOfNode);
+        mReceivingPacketRate = receivingPacketRate;
     }
 
     /**
-     * Constructs a node with a default receiving packet rate of zero.
+     *  This method is the last method that should be set after all node parameters have been initialized.
      *
-     * @param routerID
-
-     * @param role
-     * @param IPAddress
+     *  It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
      */
-    public Node(int routerID, int role, String stringAddressOfNode, String stringAddressOfMulticastGroup) throws UnknownHostException {
-        this(routerID, role, IPAddress, 0);
-    }
-
-    /* GETTERS */
-
-    public ArrayList<Node> getDestinationNodes() {
-        return destinationNodes;
-    }
+     abstract void initialize() throws IOException;
 
     public int getRouterID() {
-        return routerID;
+        return mRouterID;
     }
 
     public int getRole() {
-        return role;
-    }
-
-    public InetAddress getIPAddress() {
-        return IPAddress;
+        return mRole;
     }
 
     public int getReceivingPacketRate() {
-        return receivingPacketRate;
+        return mReceivingPacketRate;
+    }
+
+    public InetAddress getIPAddress() {
+        return mIPAddress;
     }
 
     public ArrayList<Node> getSourceNodes() {
         return sourceNodes;
+    }
+
+    public ArrayList<Node> getDestinationNodes() {
+        return destinationNodes;
     }
 
     /**
@@ -116,8 +106,6 @@ public abstract class Node {
      */
     public void addDestinationNode(Node node, int sourcePort){
         destinationNodes.add(node);
-
-        InetAddress multicastGroupInetAddress = node.getIPAddress();
     }
 
     /**
