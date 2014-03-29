@@ -1,6 +1,8 @@
+import org.w3c.dom.stylesheets.LinkStyle;
+import sun.security.ntlm.Server;
+
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -11,19 +13,33 @@ import java.util.Iterator;
  * and a list of methods for node connection
  *
  */
-public abstract class Node extends Thread {
+public class Node {
 
-    public static final int     GENERIC_PORT = 9876;        // Default listening port
-    public static final int     SOCKET_TIMEOUT = 100000;    // Timeout in miliseconds
+    /* CONSTANTS */
+    public static final int         DEFAULT_RECEIVING_PACKET_RATE = 1;
+    public static final String      LOCAL_HOST = "localhost";
 
-    private int                 mRouterID;                  // Integer ID of router
-    private int                 mRole;                      // 0 for receiver, 1 for forwarder, 2 for source
-    private InetAddress         mIPAddress;
-    private int                 mReceivingPacketRate;       // The rate to receive packets
+    private int                     mRouterID;                  // Integer ID of router
+    private Role                    mRole;                      // 0 for receiver, 1 for forwarder, 2 for source
+    private InetAddress             mIPAddress;
+    private int                     mReceivingPacketRate;       // The rate to receive packets
 
-    // Use for node connections
-    private ArrayList<Node>     sourceNodes;
-    private ArrayList<Node>     destinationNodes;
+    private ArrayList<Link>         mLinks;                     // Destination links
+    private ArrayList<RoutingEntry> mRoutingEntries;            // Routing entries.
+
+    public enum Role{
+        SOURCE, RECEIVER, FORWARDER
+    }
+
+    /**
+     * A lazy constructor only requiring ID and role for node creation.
+     *
+     * @param routerID
+     * @param role
+     */
+    public Node(int routerID, Role role){
+        this(routerID, role, LOCAL_HOST, DEFAULT_RECEIVING_PACKET_RATE);
+    }
 
     /**
      * Primary node constructor.
@@ -32,11 +48,18 @@ public abstract class Node extends Thread {
      * @param role
      * @param stringAddressOfNode
      */
-    public Node(int routerID, int role, String stringAddressOfNode, int receivingPacketRate) throws UnknownHostException {
+    public Node(int routerID, Role role, String stringAddressOfNode, int receivingPacketRate) {
         mRouterID = routerID;
         mRole = role;
-        mIPAddress = InetAddress.getByName(stringAddressOfNode);
+        try{
+            mIPAddress = InetAddress.getByName(stringAddressOfNode);
+        }catch (UnknownHostException e){
+            System.out.println("UnknownHostException occurred.");
+            e.printStackTrace();
+        }
         mReceivingPacketRate = receivingPacketRate;
+        mLinks = new ArrayList<Link>(); // creating empty list
+        mRoutingEntries = new ArrayList<RoutingEntry>();
     }
 
     /**
@@ -44,13 +67,25 @@ public abstract class Node extends Thread {
      *
      *  It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
      */
-     abstract void initialize() throws IOException;
+    public void initialize(){
+        initalizeLinks();
+    }
+
+    private void initalizeLinks() {
+
+        Iterator<Link> iterator = mLinks.iterator();
+
+        while(iterator.hasNext()){
+            Link link = iterator.next();
+            link.run();
+        }
+    }
 
     public int getRouterID() {
         return mRouterID;
     }
 
-    public int getRole() {
+    public Role getRole() {
         return mRole;
     }
 
@@ -62,58 +97,54 @@ public abstract class Node extends Thread {
         return mIPAddress;
     }
 
-    public ArrayList<Node> getSourceNodes() {
-        return sourceNodes;
+    public ArrayList<Link> getDestinationLinks() {
+        return mLinks;
     }
 
-    public ArrayList<Node> getDestinationNodes() {
-        return destinationNodes;
+    public void addDestinationNode(Node destinationNode, int port){
+        mLinks.add(new Link(this, destinationNode, port, Link.DEFAULT_COST));
     }
 
-    /**
-     * This will remove the node in the list of source nodes specified by @rid
-     * @param rid The ID of the router to be removed.
-     */
-    public void removeSourceNodeByRID(int rid){
-        Iterator<Node> iterator = destinationNodes.iterator();
+    public void addSourceNode(Node sourceNode, int port){
+        mLinks.add(new Link(sourceNode, this, port, Link.DEFAULT_COST));
+    }
 
-        while(iterator.hasNext()){
-            if(iterator.next().getRouterID() == rid){
-                iterator.remove();
-                break;
+    public void transmitDataToReceiverGivenRID(int routerID, String stringToSend) {
+
+        /**
+         * IMPLEMENTATION
+         *
+         * Checks routing table for destination node by ID. During match, will grab the corresponding
+         * next hop node and takes note of this ID.
+         *
+         * Next will iterate through all of the links this node is connected to and check the destination node
+         * for all links. If match will transmit data on this link.
+         */
+
+        Iterator<RoutingEntry> routingEntryIterator = mRoutingEntries.iterator();
+
+        while(routingEntryIterator.hasNext()){
+            RoutingEntry routingEntry = routingEntryIterator.next();
+
+            if (routingEntry.getDestinationNode().getRouterID() == routerID){
+
+                int nextHopID = routingEntry.getNextHopNode().getRouterID();
+
+                Iterator<Link> linkIterator = mLinks.iterator();
+
+                while(linkIterator.hasNext()){
+                    Link link = linkIterator.next();
+
+                    if (link.getDestinationNode().getRouterID() == nextHopID){
+                        try{
+                            link.transmitAString(stringToSend);
+                        }catch (IOException e){
+                            System.out.println("IO Exception occurred.");
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
         }
     }
-
-    /**
-     * This will remove the node in the list of destination nodes specified by @rid
-     * @param rid The ID of the router to be removed.
-     */
-    public void removeDesintationNodeByRID(int rid){
-        Iterator<Node> iterator = sourceNodes.iterator();
-
-        while(iterator.hasNext()){
-            if(iterator.next().getRouterID() == rid){
-                iterator.remove();
-                break;
-            }
-        }
-    }
-
-    /**
-     * Add node to list of destination nodes.
-     * @param node
-     */
-    public void addDestinationNode(Node node, int sourcePort){
-        destinationNodes.add(node);
-    }
-
-    /**
-     * Add node to list of source nodes.
-     * @param node
-     */
-    public void addSourceNode(Node node, int destinationPort){
-        sourceNodes.add(node);
-    }
-
 }
