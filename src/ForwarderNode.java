@@ -14,11 +14,10 @@ public final class ForwarderNode extends Node{
      * A lazy constructor only requiring ID, role and listening for node creation.
      *
      * @param routerID      Router ID.
-     * @param role          Role of router.
      * @param listeningPort Port to listen for incoming connections.
      */
     public ForwarderNode(int routerID, int listeningPort) {
-        super(routerID, Role.FORWARDER, listeningPort);
+        this(routerID, Role.FORWARDER, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
     }
 
     /**
@@ -32,6 +31,8 @@ public final class ForwarderNode extends Node{
      */
     public ForwarderNode(int routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
         super(routerID, role, stringAddressOfNode, listeningPort, receivingPacketRate);
+
+
     }
 
     /**
@@ -48,26 +49,24 @@ public final class ForwarderNode extends Node{
                 while(true){
                     try{
                         System.out.println("Setting listening port for Node " + getRouterID());
-                        setServerListeningSocket(new ServerSocket(getListeningPort()));
-                        getServerListeningSocket().setSoTimeout(SOCKET_TIMEOUT);
 
                         System.out.println("Listening for client to connect to Node " + getRouterID());
-                        setServerSocket(getServerListeningSocket().accept()); // blocks until a connection is made
+                        setSocket(getServerSocket().accept()); // blocks until a connection is made
 
-                        System.out.println("Node " + getRouterID() + " has accepted and is acting as server and is connected to remote address " + getServerSocket().getRemoteSocketAddress());
+                        System.out.println("Node " + getRouterID() + " has accepted and is acting as server and is connected to remote address " + getSocket().getRemoteSocketAddress());
 
-                        DataInputStream in = new DataInputStream(getServerSocket().getInputStream());
-
+                        DataInputStream in = new DataInputStream(getSocket().getInputStream());
                         String incomingMessage = in.readUTF();
                         System.out.println("Message received by Node " + getRouterID() + " is \"" + incomingMessage + "\"");
 
-                        DataOutputStream out = new DataOutputStream(getServerSocket().getOutputStream());
-                        out.writeUTF("Node " + getRouterID() + " acknowledges message from" + getServerSocket().getRemoteSocketAddress());
+                        DataOutputStream out = new DataOutputStream(getSocket().getOutputStream());
+                        out.writeUTF("Node " + getRouterID() + " acknowledges message from" + getSocket().getRemoteSocketAddress());
 
                         // Forward Data
                         forwardMessageOverConnection(Integer.parseInt(incomingMessage), incomingMessage);
-                        getServerSocket().close();
-                        getServerListeningSocket();
+
+                        System.out.println("Node " + getRouterID() + " is closing it's server outbound connection.");
+                        getSocket().close();
 
                     }catch(SocketTimeoutException socketTimeoutException){
 
@@ -75,8 +74,6 @@ public final class ForwarderNode extends Node{
 
                     }catch(IOException iOException){
                         iOException.printStackTrace();
-                    }finally {
-                        break;
                     }
                 }
             }

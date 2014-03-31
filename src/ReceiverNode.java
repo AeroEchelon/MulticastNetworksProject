@@ -44,27 +44,26 @@ public class ReceiverNode extends Node {
 
                 while(true){
                     try{
-                        setServerListeningSocket(new ServerSocket(getListeningPort()));
-                        getServerListeningSocket().setSoTimeout(SOCKET_TIMEOUT);
-                        setServerSocket(getServerListeningSocket().accept()); // blocks until a connection is made
+                        setSocket(getServerSocket().accept()); // blocks until a connection is made
 
-                        System.out.println("Node " + getRouterID() + " has accepted and is acting as server and is connected to remote address " + getServerSocket().getRemoteSocketAddress());
+                        System.out.println(" Node " + getRouterID() + " has accepted and is acting as server and is connected to remote address " + getSocket().getRemoteSocketAddress());
 
-                        DataInputStream in = new DataInputStream(getServerSocket().getInputStream());
+                        DataInputStream in = new DataInputStream(getSocket().getInputStream());
 
                         String incomingMessage = in.readUTF();
-                        System.out.println("Message re4ceived by Node " + getRouterID() + " is \"" + incomingMessage + "\"");
+                        System.out.println(" Message received by Node " + getRouterID() + " is \"" + incomingMessage + "\"");
 
-                        DataOutputStream out = new DataOutputStream(getServerSocket().getOutputStream());
-                        out.writeUTF("Node " + getRouterID() + " acknowledges message from" + getServerSocket().getRemoteSocketAddress());
+                        DataOutputStream out = new DataOutputStream(getSocket().getOutputStream());
+                        out.writeUTF(" Node " + getRouterID() + " acknowledges message from" + getSocket().getRemoteSocketAddress());
+                        getSocket().close();
 
-                        }catch(SocketTimeoutException socketTimeoutException){
+                    }catch(SocketTimeoutException socketTimeoutException){
 
-                        System.out.println("Socket timed out!");
+                        System.out.println(" Socket timed out!");
 
                     }catch(IOException iOException){
                         iOException.printStackTrace();
-                    }finally {
+                    }catch (Exception e){
                         break;
                     }
                 }
