@@ -37,14 +37,14 @@ public class ServerNode {
         Node cNode = new ForwarderNode(3, cListeningPort);
         Node dNode = new ReceiverNode(4, dListeningPort);
 
-        System.out.println("Creating Network ...");
+        System.out.println("\nEstablishing physical links ...");
         aNode.addDestinationNode(bNode);
         aNode.addDestinationNode(cNode);
 
         bNode.addDestinationNode(dNode);
         cNode.addDestinationNode(dNode);
 
-        System.out.println("Adding routing entries to Nodes");
+        System.out.println("\nAdding routing entries to each node ...");
         aNode.addRoutingEntry(aNode, aNode);
         aNode.addRoutingEntry(bNode, bNode);
         aNode.addRoutingEntry(cNode, cNode);
@@ -56,12 +56,14 @@ public class ServerNode {
         cNode.addRoutingEntry(cNode,cNode);
         cNode.addRoutingEntry(dNode,dNode);
 
+        System.out.println("\nInitializing nodes ...");
         bNode.initialize();
         cNode.initialize();
         dNode.initialize();
 
         Thread.sleep(200);
 
+        System.out.println("\nStart!");
         aNode.initialize();
 
 

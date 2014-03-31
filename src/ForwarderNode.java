@@ -48,24 +48,16 @@ public final class ForwarderNode extends Node{
 
                 while(true){
                     try{
-                        System.out.println("Setting listening port for Node " + getRouterID());
-
-                        System.out.println("Listening for client to connect to Node " + getRouterID());
                         setSocket(getServerSocket().accept()); // blocks until a connection is made
-
-                        System.out.println("Node " + getRouterID() + " has accepted and is acting as server and is connected to remote address " + getSocket().getRemoteSocketAddress());
-
                         DataInputStream in = new DataInputStream(getSocket().getInputStream());
                         String incomingMessage = in.readUTF();
-                        System.out.println("Message received by Node " + getRouterID() + " is \"" + incomingMessage + "\"");
+                        System.out.println("<Node " + getRouterID() + " @ " + getIPAddress() + " receives message " + incomingMessage + "\" from remote address " + getSocket().getRemoteSocketAddress());
 
                         DataOutputStream out = new DataOutputStream(getSocket().getOutputStream());
-                        out.writeUTF("Node " + getRouterID() + " acknowledges message from" + getSocket().getRemoteSocketAddress());
+                        out.writeUTF("--- Node " + getRouterID() + " acknowledges message from " + getSocket().getRemoteSocketAddress());
 
                         // Forward Data
                         forwardMessageOverConnection(Integer.parseInt(incomingMessage), incomingMessage);
-
-                        System.out.println("Node " + getRouterID() + " is closing it's server outbound connection.");
                         getSocket().close();
 
                     }catch(SocketTimeoutException socketTimeoutException){

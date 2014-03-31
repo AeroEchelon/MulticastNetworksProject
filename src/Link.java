@@ -46,7 +46,7 @@ public class Link{
         mConnectionPort = connectionPort;
         mCost = cost;
         mLinkID = mLinkIDcounter++;
-        System.out.println("A new link with Link ID " + mLinkID + " has been created connecting Node " + mSourceNode.getRouterID() + " to Node " + mDestinationNode.getRouterID() + " over Link " + mLinkID);
+        System.out.println("Link " + mLinkID + " <SOURCE[Node " + mSourceNode.getRouterID() + ", IP " + sourceNode.getIPAddress() + "], DESTINATION[Node " + mDestinationNode.getRouterID() + ", IP " + destinationNode.getIPAddress() + ", Port " + mConnectionPort + "], [Cost " + mCost + "]>");
     }
 
     public void setCost(int cost) {
@@ -86,28 +86,20 @@ public class Link{
         transmitString();
     }
 
-    private void initializeConnection(){
-
-    }
-
     public void transmitString(){
 
         try {
 
             mSocket = new Socket(Node.LOCAL_HOST, mConnectionPort);
-            System.out.println("Node " + mSourceNode.getRouterID() + " is using Link " + mLinkID + " to transmit data to Node " + mDestinationNode.getRouterID());
 
             // Transmitting message
             OutputStream outputStream = mSocket.getOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
             dataOutputStream.writeUTF(mMessageToSend);
 
-            System.out.println("Node " + mSourceNode.getRouterID() + " is expecting a reply from destination Node " + mDestinationNode.getRouterID());
-
-            inFromServer = mSocket.getInputStream();
-            mDataInputStream = new DataInputStream(inFromServer);
+            // Receiving acknowledgement
+            mDataInputStream = new DataInputStream(mSocket.getInputStream());
             System.out.println(mDataInputStream.readUTF());
-            System.out.println("Node " + mSourceNode.getRouterID() + " has closed it's connection to Node " + mDestinationNode.getRouterID());
             mSocket.close();
         } catch (IOException e) {
 

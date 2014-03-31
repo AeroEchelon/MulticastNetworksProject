@@ -39,9 +39,9 @@ public class SourceNode extends Node{
     @Override
     public void initialize() {
 
-        while(true){
+        System.out.println("Enter something here : ");
 
-            System.out.println("Enter something here : ");
+        while(true){
 
             String messageToSend = "";
             try{
