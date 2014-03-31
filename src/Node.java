@@ -1,8 +1,3 @@
-import org.w3c.dom.stylesheets.LinkStyle;
-import sun.security.ntlm.Server;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
@@ -35,8 +30,8 @@ public abstract class Node {
     private ArrayList<Link>         mLinks;                     // Destination links
     private ArrayList<RoutingEntry> mRoutingEntries;            // Routing entries.
 
-    private ServerSocket            mServerListeningSocket;     // Socket to listen for incoming connections
-    private Socket                  mServerSocket;
+    private ServerSocket            mServerSocket;     // Socket to listen for incoming connections
+    private Socket                  mSocket;
 
     private String                  mIncomingMessage;           // Incoming Message
 
@@ -73,7 +68,14 @@ public abstract class Node {
         try{
             mIPAddress = InetAddress.getByName(stringAddressOfNode);
         }catch (UnknownHostException e){
-            System.out.println("UnknownHostException occurred.");
+            System.out.println("Node.java  - UnknownHostException occurred.");
+            e.printStackTrace();
+        }
+
+        try {
+            mServerSocket = new ServerSocket(getListeningPort());
+            mServerSocket.setSoTimeout(SOCKET_TIMEOUT);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -85,51 +87,6 @@ public abstract class Node {
      *  It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
      */
     public abstract void initialize();
-
-    public void forwardMessageOverConnection(int destinationRouterID, String stringToSend) {
-
-        /**
-         * IMPLEMENTATION
-         *
-         * Checks routing table for destination node by ID. During match, will grab the corresponding
-         * next hop node and takes note of this ID.
-         *
-         * Next will iterate through all of the links this node is connected to and check the destination node
-         * for all links. If match will transmit data on this link.
-         */
-
-        System.out.print("Node " + mRouterID + " is attempting to transmit data ... ");
-        Iterator<RoutingEntry> routingEntryIterator = mRoutingEntries.iterator();
-
-        while(routingEntryIterator.hasNext()){
-            RoutingEntry routingEntry = routingEntryIterator.next();
-
-            if (routingEntry.getDestinationNode().getRouterID() == destinationRouterID){
-
-                int nextHopID = routingEntry.getNextHopNode().getRouterID();
-
-                Iterator<Link> linkIterator = mLinks.iterator();
-
-                while(linkIterator.hasNext()){
-                    Link link = linkIterator.next();
-
-                    if (link.getDestinationNode().getRouterID() == nextHopID){
-                        System.out.println("Link " + link.getLinkID() + " found and is transmitting data and sending message: \"" + stringToSend + "\"");
-                        link.setMessageToSend(stringToSend);
-                        link.run();
-                        return;
-                    }
-                }
-
-                System.out.println("No link found for Node " + mRouterID + " connecting it to Node " + destinationRouterID);
-
-            }
-        }
-
-        System.out.println("No routing entry found in Node " + mRouterID + " for destination Node " + destinationRouterID);
-    }
-
-
 
     public int getRouterID() {
         return mRouterID;
@@ -152,11 +109,11 @@ public abstract class Node {
     public ArrayList<RoutingEntry> getRoutingEntries() {
         return mRoutingEntries;
     }
-    public ServerSocket getServerListeningSocket() {
-        return mServerListeningSocket;
-    }
-    public Socket getServerSocket() {
+    public ServerSocket getServerSocket() {
         return mServerSocket;
+    }
+    public Socket getSocket() {
+        return mSocket;
     }
 
     public void setRouterID(int mRouterID) {
@@ -187,12 +144,12 @@ public abstract class Node {
         this.mRoutingEntries = mRoutingEntries;
     }
 
-    public void setServerListeningSocket(ServerSocket mServerListeningSocket) {
-        this.mServerListeningSocket = mServerListeningSocket;
+    public void setServerSocket(ServerSocket listeningSocket) {
+        mServerSocket = listeningSocket;
     }
 
-    public void setServerSocket(Socket mServerSocket) {
-        this.mServerSocket = mServerSocket;
+    public void setSocket(Socket socket) {
+        mSocket = socket;
     }
 
     public void setIncomingMessage(String mIncomingMessage) {
@@ -209,7 +166,7 @@ public abstract class Node {
             if(link.getDestinationNode().getRouterID() == destinationNode.getRouterID()){
                 // link to destination node already exists update link information
 
-                System.out.println("Link from Node " + mRouterID + " to Node " + destinationNode.getRouterID() + " already exists. Updating information");
+                System.out.println("Node.java  - Link from Node " + mRouterID + " to Node " + destinationNode.getRouterID() + " already exists. Updating information");
                 link.setDestinationNode(destinationNode);
                 link.setPort(destinationNode.getListeningPort());
                 link.setSourceNode(this);
@@ -252,7 +209,7 @@ public abstract class Node {
                 Link link = linkIterator.next();
 
                 if(link.getDestinationNode().getRouterID() == nextHopNode.getRouterID()){
-                    System.out.println("Adding routing entry for Node " + mRouterID + ". Link " + link.getLinkID() + " is being used to next hop Node " + nextHopNode.getRouterID() + " and destination Node " + destinationNode.getRouterID());
+                    System.out.println("Node.java  - Adding routing entry for Node " + mRouterID + ". Link " + link.getLinkID() + " is being used to next hop Node " + nextHopNode.getRouterID() + " and destination Node " + destinationNode.getRouterID());
                     linkNotFound = false;
                     linkToUse = link;
                 }
@@ -265,7 +222,50 @@ public abstract class Node {
         }
 
         if(linkNotFound){
-            System.out.println("No physical link from Node " + mRouterID + " to Node " +destinationNode.getRouterID() + " has been established.");
+            System.out.println("Node.java  - No physical link from Node " + mRouterID + " to Node " +destinationNode.getRouterID() + " has been established.");
         }
+    }
+
+    public void forwardMessageOverConnection(int destinationRouterID, String stringToSend) {
+
+        /**
+         * IMPLEMENTATION
+         *
+         * Checks routing table for destination node by ID. During match, will grab the corresponding
+         * next hop node and takes note of this ID.
+         *
+         * Next will iterate through all of the links this node is connected to and check the destination node
+         * for all links. If match will transmit data on this link.
+         */
+
+        System.out.print("Node.java  - Node " + mRouterID + " is attempting to transmit data ... ");
+        Iterator<RoutingEntry> routingEntryIterator = mRoutingEntries.iterator();
+
+        while(routingEntryIterator.hasNext()){
+            RoutingEntry routingEntry = routingEntryIterator.next();
+
+            if (routingEntry.getDestinationNode().getRouterID() == destinationRouterID){
+
+                int nextHopID = routingEntry.getNextHopNode().getRouterID();
+
+                Iterator<Link> linkIterator = mLinks.iterator();
+
+                while(linkIterator.hasNext()){
+                    Link link = linkIterator.next();
+
+                    if (link.getDestinationNode().getRouterID() == nextHopID){
+                        System.out.println("Node.java  - Link " + link.getLinkID() + " found and is transmitting data and sending message: \"" + stringToSend + "\"");
+                        link.setMessageToSend(stringToSend);
+                        link.run();
+                        return;
+                    }
+                }
+
+                System.out.println("Node.java  - No link found for Node " + mRouterID + " connecting it to Node " + destinationRouterID);
+
+            }
+        }
+
+        System.out.println("Node.java  - No routing entry found in Node " + mRouterID + " for destination Node " + destinationRouterID);
     }
 }

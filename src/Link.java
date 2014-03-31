@@ -83,30 +83,18 @@ public class Link{
 
 
     public void run() {
-
-        if(!socketHasBeenEstablished){
-            initializeConnection();
-            socketHasBeenEstablished = true;
-        }
-
         transmitString();
     }
 
     private void initializeConnection(){
 
-        try {
-            mSocket = new Socket(Node.LOCAL_HOST, mConnectionPort);
-            // Expecting Acknowledgement from Server
-
-            System.out.println("Link " + mLinkID + " as been initialized and Node " + mSourceNode.getRouterID() + " is connected to Node " + mDestinationNode.getRouterID() + " on server Node " + mDestinationNode.getRouterID() + " on remote address " + mSocket.getRemoteSocketAddress());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void transmitString(){
 
         try {
+
+            mSocket = new Socket(Node.LOCAL_HOST, mConnectionPort);
             System.out.println("Node " + mSourceNode.getRouterID() + " is using Link " + mLinkID + " to transmit data to Node " + mDestinationNode.getRouterID());
 
             // Transmitting message
@@ -119,8 +107,8 @@ public class Link{
             inFromServer = mSocket.getInputStream();
             mDataInputStream = new DataInputStream(inFromServer);
             System.out.println(mDataInputStream.readUTF());
-
             System.out.println("Node " + mSourceNode.getRouterID() + " has closed it's connection to Node " + mDestinationNode.getRouterID());
+            mSocket.close();
         } catch (IOException e) {
 
             System.out.println("IO Exception!");
