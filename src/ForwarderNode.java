@@ -1,23 +1,30 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 
 /**
  * Created by marvinbernal on 2014-03-31.
+ *
+ * A node which forwards packets from incoming nodes to other nodes.
+ *
+ * Specifically this node can receive packets from the source or other forwarders and forward them to other forwarders
+ * or receiver nodes.
+ *
  */
-public final class ForwarderNode extends Node{
+final class ForwarderNode extends Node{
 
 
     /**
      * A lazy constructor only requiring ID, role and listening for node creation.
      *
+     * IP Address and packet rate are set to default.
+     *
      * @param routerID      Router ID.
      * @param listeningPort Port to listen for incoming connections.
      */
     public ForwarderNode(int routerID, int listeningPort) {
-        this(routerID, Role.FORWARDER, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
+        this(routerID, Role.FORWARDER, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
     }
 
     /**
@@ -25,20 +32,18 @@ public final class ForwarderNode extends Node{
      *
      * @param routerID
      * @param role
-     * @param stringAddressOfNode
      * @param listeningPort
      * @param receivingPacketRate
      */
-    public ForwarderNode(int routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
-        super(routerID, role, stringAddressOfNode, listeningPort, receivingPacketRate);
-
+    public ForwarderNode(int routerID, Role role, int listeningPort, int receivingPacketRate) {
+        super(routerID, Role.FORWARDER, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
 
     }
 
     /**
-     * This method is the last method that should be set after all node parameters have been initialized.
-     * <p/>
-     * It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
+     * Initialize will begin to listen for incoming connections and proceed to forward it to the next hop node as denoted
+     * in the packet structure.
+     *
      */
     @Override
     public void initialize() {
@@ -57,7 +62,7 @@ public final class ForwarderNode extends Node{
                         out.writeUTF("--- Node " + getRouterID() + " acknowledges message from " + getSocket().getRemoteSocketAddress());
 
                         // Forward Data
-                        forwardMessageOverConnection(Integer.parseInt(incomingMessage), incomingMessage);
+                        sendMessageGivenRouterID(Integer.parseInt(incomingMessage), incomingMessage);
                         getSocket().close();
 
                     }catch(SocketTimeoutException socketTimeoutException){

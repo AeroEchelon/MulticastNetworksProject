@@ -1,21 +1,23 @@
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.SocketTimeoutException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * Created by marvinbernal on 2014-03-31.
+ *
+ * A starting node which multicasts packets from here to other forwarder or receiver nodes.
  */
-public class SourceNode extends Node{
+final class SourceNode extends Node{
 
     /**
      * A lazy constructor only requiring ID, role and listening for node creation.
      *
-     * @param routerID      Router ID.
-     * @param role          Role of router.
+     * IP Address and packet rate are set to default.
+     *
      * @param listeningPort Port to listen for incoming connections.
      */
-    public SourceNode(int routerID, int listeningPort) {
-        super(routerID, Role.SOURCE, listeningPort);
+    public SourceNode(int listeningPort) {
+        super(1, Role.SOURCE, listeningPort);
     }
 
     /**
@@ -32,9 +34,9 @@ public class SourceNode extends Node{
     }
 
     /**
-     * This method is the last method that should be set after all node parameters have been initialized.
-     * <p/>
-     * It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
+     * Initialize will initiate a request for user input to be sent to any other node on the network.
+     *
+     * Because of this, this node should be initialized after the network is stabilized.
      */
     @Override
     public void initialize() {
@@ -43,21 +45,39 @@ public class SourceNode extends Node{
 
         while(true){
 
-            String messageToSend = "";
+            String messageToSend;
             try{
                 BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
                 messageToSend = bufferRead.readLine();
 
                 System.out.println("This will be the message sent: " + messageToSend);
                 Thread.sleep(1000);
+
+                if (messageToSend.equals("")){
+                    System.out.println("Please enter valid input.");
+                }else if(messageToSend.equals("EXIT")){
+                    System.out.println("Goodbye!");
+                    getServerSocket().close();
+                    getSocket().close();
+                    System.exit(0);
+                }else{
+                    sendMessageGivenRouterID(Integer.parseInt(messageToSend), messageToSend);
+                }
+
+
             }catch(IOException e){
                 e.printStackTrace();
             }
             catch(InterruptedException e){
                 e.printStackTrace();
             }
+            catch (Exception e){
 
-            forwardMessageOverConnection(Integer.parseInt(messageToSend), messageToSend);
+                System.out.println("Something wrong happened. Terminating process.");
+                System.out.println("Goodbye!");
+                System.exit(0);
+            }
+
         }
     }
 }

@@ -1,13 +1,12 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 
 /**
  * Created by marvinbernal on 2014-03-30.
  */
-public class ReceiverNode extends Node {
+final class ReceiverNode extends Node {
     /**
      * Primary node constructor.
      *
@@ -23,19 +22,17 @@ public class ReceiverNode extends Node {
     /**
      * A lazy constructor only requiring ID, role and listening for node creation.
      *
-     * @param routerID      Router ID.
+     * IP Address and packet rate are set to default.
+     *
      * @param listeningPort Port to listen for incoming connections.
      */
-    public ReceiverNode(int routerID, int listeningPort) {
-        super(routerID, Role.RECEIVER, listeningPort);
+    public ReceiverNode(int listeningPort) {
+        super(4, Role.RECEIVER, listeningPort);
     }
 
     /**
-     * This method is the last method that should be set after all node parameters have been initialized.
-     * <p/>
-     * It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
+     * Initialize will initiate this node to listen for socket connections on its listening port.
      */
-
     @Override
     public void initialize() {
         new Thread(){

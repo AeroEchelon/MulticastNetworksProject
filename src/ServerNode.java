@@ -1,8 +1,3 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
 /**
  * Created by marvinbernal on 2014-03-29.
  */
@@ -32,10 +27,10 @@ public class ServerNode {
 
         System.out.println("Creating Nodes ...");
         // This is using Node's lazy constructor. IP address for all notes is assumed to be 'localhost'.
-        Node aNode = new SourceNode(1, aListeningPort);
+        Node aNode = new SourceNode(aListeningPort);
         Node bNode = new ForwarderNode(2, bListeningPort);
         Node cNode = new ForwarderNode(3, cListeningPort);
-        Node dNode = new ReceiverNode(4, dListeningPort);
+        Node dNode = new ReceiverNode(dListeningPort);
 
         System.out.println("\nEstablishing physical links ...");
         aNode.addDestinationNode(bNode);

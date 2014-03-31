@@ -1,22 +1,23 @@
 import java.io.IOException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
  * Created by marvinbernal on 2014-03-26.
  *
- * A generic node that contains attributes pertaining to source / destination IP addresses, receiving packet rate
- * and a list of methods for node connection
+ * An abstract node that contains attributes pertaining to source / destination IP addresses, receiving packet rate
+ * and a list of methods for node connection.
  *
  */
-public abstract class Node {
+abstract class Node {
 
     /* CONSTANTS */
-    public static final int         DEFAULT_PORT = 6066;        // Default listening port
     public static final int         SOCKET_TIMEOUT = 120000;    // Timeout in milliseconds
 
-    public static final int         DEFAULT_COST = 1;           // Default cost for link
     public static final int         DEFAULT_RECEIVING_PACKET_RATE = 1;
     public static final String      LOCAL_HOST = "localhost";
 
@@ -30,13 +31,14 @@ public abstract class Node {
     private ArrayList<Link>         mLinks;                     // Destination links
     private ArrayList<RoutingEntry> mRoutingEntries;            // Routing entries.
 
-    private ServerSocket            mServerSocket;     // Socket to listen for incoming connections
+    private ServerSocket            mServerSocket;              // Socket to listen for incoming connections
     private Socket                  mSocket;
 
-    private String                  mIncomingMessage;           // Incoming Message
-
+    /**
+     * Each Node can either be a SOURCE, FORWARDER or RECEIVER
+     */
     public enum Role{
-        SOURCE, RECEIVER, FORWARDER
+        SOURCE, FORWARDER, RECEIVER
     }
 
     /**
@@ -90,7 +92,7 @@ public abstract class Node {
     /**
      *  This method is the last method that should be set after all node parameters have been initialized.
      *
-     *  It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
+     *  It is responsible for listening for incoming packets and forwarding outgoing packets.
      */
     public abstract void initialize();
 
@@ -100,21 +102,26 @@ public abstract class Node {
     public Role getRole() {
         return mRole;
     }
+
     public InetAddress getIPAddress() {
         return mIPAddress;
     }
+
     public int getReceivingPacketRate() {
         return mReceivingPacketRate;
     }
     public int getListeningPort() {
         return mListeningPort;
     }
+
     public ArrayList<Link> getLinks() {
         return mLinks;
     }
+
     public ArrayList<RoutingEntry> getRoutingEntries() {
         return mRoutingEntries;
     }
+
     public ServerSocket getServerSocket() {
         return mServerSocket;
     }
@@ -122,46 +129,20 @@ public abstract class Node {
         return mSocket;
     }
 
-    public void setRouterID(int mRouterID) {
-        this.mRouterID = mRouterID;
-    }
-
-    public void setRole(Role mRole) {
-        this.mRole = mRole;
-    }
-
-    public void setIPAddress(InetAddress mIPAddress) {
-        this.mIPAddress = mIPAddress;
-    }
-
     public void setReceivingPacketRate(int mReceivingPacketRate) {
         this.mReceivingPacketRate = mReceivingPacketRate;
-    }
-
-    public void setListeningPort(int mListeningPort) {
-        this.mListeningPort = mListeningPort;
-    }
-
-    public void setLinks(ArrayList<Link> mLinks) {
-        this.mLinks = mLinks;
-    }
-
-    public void setRoutingEntries(ArrayList<RoutingEntry> mRoutingEntries) {
-        this.mRoutingEntries = mRoutingEntries;
-    }
-
-    public void setServerSocket(ServerSocket listeningSocket) {
-        mServerSocket = listeningSocket;
     }
 
     public void setSocket(Socket socket) {
         mSocket = socket;
     }
 
-    public void setIncomingMessage(String mIncomingMessage) {
-        this.mIncomingMessage = mIncomingMessage;
-    }
-
+    /**
+     * Will create a link from this node to the destination node. It first checks if this connection already
+     * exists and if so will update the link information instead.
+     *
+     * @param destinationNode - The next hop / destination node.
+     */
     public void addDestinationNode(Node destinationNode){
 
         Iterator<Link> linkIterator = mLinks.iterator();
@@ -181,9 +162,17 @@ public abstract class Node {
         }
 
         // Will add new destination node if existing link is not found
-        mLinks.add(new Link(this, destinationNode, destinationNode.getListeningPort(), Link.DEFAULT_COST));
+        mLinks.add(new Link(this, destinationNode, destinationNode.getListeningPort()));
     }
 
+    /**
+     * Adds a routing entry to a destination node given its next hop node.
+     *
+     * If an entry to a destination already exists, it updates that entry with the latest next hop node.
+     *
+     * @param nextHopNode       The next hop node.
+     * @param destinationNode   The destination node.
+     */
     public void addRoutingEntry(Node nextHopNode, Node destinationNode){
 
         Iterator<RoutingEntry> routingEntryIterator = mRoutingEntries.iterator();
@@ -206,7 +195,6 @@ public abstract class Node {
          *  then find a link to corresponding node, and creating a routing entry to desintation node
          */
         if(duplicateRoutingEntryNotFound){
-            Link linkToUse = new Link();
 
             Iterator<Link> linkIterator = mLinks.iterator();
 
@@ -217,14 +205,13 @@ public abstract class Node {
                 if(link.getDestinationNode().getRouterID() == nextHopNode.getRouterID()){
                     System.out.println("Node " + mRouterID + " Routing Entry <[Link " + link.getLinkID() + "], [Next Hop Node " + nextHopNode.getRouterID() + " @ " + nextHopNode.getIPAddress() + "], [Destination Node " + destinationNode.getRouterID() + " @ " + destinationNode.getIPAddress() +"]>");
                     linkNotFound = false;
-                    linkToUse = link;
+
+                    RoutingEntry routingEntry = new RoutingEntry(nextHopNode, destinationNode, link);
+                    mRoutingEntries.add(routingEntry);
                 }
 
             }
 
-            RoutingEntry routingEntry = new RoutingEntry(nextHopNode, destinationNode, linkToUse);
-            mRoutingEntries.add(routingEntry);
-            return;
         }
 
         if(linkNotFound){
@@ -232,7 +219,17 @@ public abstract class Node {
         }
     }
 
-    public void forwardMessageOverConnection(int destinationRouterID, String stringToSend) {
+    /**
+     * Sends a message from this node to a destination node. This desintation node does not have to be directly
+     * connected to this node. Given the destination ID, it will look up in its routing table if it has a path
+     * to the next hop node.
+     *
+     * If neither a link or routing entry is found, a message is thrown and the message is *not* sent.
+     *
+     * @param destinationRouterID   The node ID to receive message.
+     * @param stringToSend          The message to send.
+     */
+    public void sendMessageGivenRouterID(int destinationRouterID, String stringToSend) {
 
         /**
          * IMPLEMENTATION

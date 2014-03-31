@@ -3,7 +3,7 @@
  *
  * A simple data structure containing next hop nodes, destination node and link (interface).
  */
-public class RoutingEntry {
+final class RoutingEntry {
 
     private Node mNextHopNode;
     private Node mDestinationNode;
@@ -27,15 +27,15 @@ public class RoutingEntry {
         return mLink;
     }
 
-    public void setNextHopNode(Node mNextHopNode) {
-        this.mNextHopNode = mNextHopNode;
+    public void setNextHopNode(Node nextHopNode) {
+        mNextHopNode = nextHopNode;
     }
 
-    public void setDestinationNode(Node mDestinationNode) {
-        this.mDestinationNode = mDestinationNode;
+    public void setDestinationNode(Node destinationNode) {
+        mDestinationNode = destinationNode;
     }
 
-    public void setmLink(Link mLink) {
-        this.mLink = mLink;
+    public void setLink(Link link) {
+        mLink = link;
     }
 }
