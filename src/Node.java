@@ -25,18 +25,20 @@ public class Node {
     public static final int         DEFAULT_RECEIVING_PACKET_RATE = 1;
     public static final String      LOCAL_HOST = "localhost";
 
-    private int                     mRouterID;                  // Integer ID of router
-    private Role                    mRole;                      // 0 for receiver, 1 for forwarder, 2 for source
-    private InetAddress             mIPAddress;
-    private int                     mReceivingPacketRate;       // The rate to receive packets
+    protected int                     mRouterID;                  // Integer ID of router
+    protected Role                    mRole;                      // 0 for receiver, 1 for forwarder, 2 for source
+    protected InetAddress             mIPAddress;
+    protected int                     mReceivingPacketRate;       // The rate to receive packets
 
-    private int                     mListeningPort;             // The port to listen to incoming connections
+    protected int                     mListeningPort;             // The port to listen to incoming connections
 
-    private ArrayList<Link>         mLinks;                     // Destination links
-    private ArrayList<RoutingEntry> mRoutingEntries;            // Routing entries.
+    protected ArrayList<Link>         mLinks;                     // Destination links
+    protected ArrayList<RoutingEntry> mRoutingEntries;            // Routing entries.
 
-    private ServerSocket            mServerListeningSocket;  // Socket to listen for incoming connections
-    private Socket                  mServerSocket;
+    protected ServerSocket            mServerListeningSocket;     // Socket to listen for incoming connections
+    protected Socket                  mServerSocket;
+
+    protected String                  mIncomingMessage;           // Incoming Message
 
     public enum Role{
         SOURCE, RECEIVER, FORWARDER
@@ -83,11 +85,10 @@ public class Node {
      *  It is responsible for listening for incoming datagrams and forwarding outgoing datagrams.
      */
     public void initialize(){
-        listenForConnectionRequests();
+        listenForConnections();
     }
 
-    public void listenForConnectionRequests(){
-
+    private void listenForConnections(){
         new Thread(){
             @Override
             public void run(){
@@ -101,9 +102,16 @@ public class Node {
                         System.out.println("Node " + mRouterID + " has accepted and is acting as server and is connected to remote address " + mServerSocket.getRemoteSocketAddress());
 
                         DataInputStream in = new DataInputStream(mServerSocket.getInputStream());
-                        System.out.println(in.readUTF());
+
+                        mIncomingMessage = in.readUTF();
+                        System.out.println("Mesage received by Node " + mRouterID + " is \"" + mIncomingMessage + "\"");
+
                         DataOutputStream out = new DataOutputStream(mServerSocket.getOutputStream());
-                        out.writeUTF("Thank you for connecting to " + mServerSocket.getLocalSocketAddress() + "\nGoodbye!");
+                        out.writeUTF("Node " + mRouterID + " acknowledges message from" + mServerSocket.getRemoteSocketAddress());
+
+
+                        // Forward Data
+                        forwardMessageOverConnection(Integer.parseInt(mIncomingMessage), mIncomingMessage);
                         mServerSocket.close();
                     }catch(SocketTimeoutException socketTimeoutException){
 
@@ -117,91 +125,8 @@ public class Node {
                 }
             }
         }.start();
-
     }
-
-    private void connectToSourceNodes() {
-
-        Iterator<Link> iterator = mLinks.iterator();
-
-        while(iterator.hasNext()){
-            Link link = iterator.next();
-
-            if (link.getSourceNode().getRouterID() != mRouterID){
-                System.out.println("Iterating through Source Node " + link.getSourceNode().getRouterID() + " links.");
-
-            }
-        }
-    }
-
-    public int getRouterID() {
-        return mRouterID;
-    }
-
-    public Role getRole() {
-        return mRole;
-    }
-
-    public int getReceivingPacketRate() {
-        return mReceivingPacketRate;
-    }
-
-    public InetAddress getIPAddress() {
-        return mIPAddress;
-    }
-
-    public int getListeningPort(){
-        return mListeningPort;
-    }
-
-    public ArrayList<Link> getDestinationLinks() {
-        return mLinks;
-    }
-
-    public void addDestinationNode(Node destinationNode){
-
-        Iterator<Link> linkIterator = mLinks.iterator();
-
-        while(linkIterator.hasNext()){
-            Link link = linkIterator.next();
-
-            if(link.getDestinationNode().getRouterID() == destinationNode.getRouterID()){
-                // link to destination node already exists update link information
-                link.setDestinationNode(destinationNode);
-                link.setPort(destinationNode.getListeningPort());
-                link.setSourceNode(this);
-                return;
-            }
-        }
-
-        // Will add new destination node if existing link is not found
-        mLinks.add(new Link(this, destinationNode, destinationNode.getListeningPort(), Link.DEFAULT_COST));
-    }
-
-    public void addRoutingEntry(Node nextHopNode, Node destinationNode){
-        Link linkToUse = new Link();
-
-        Iterator<Link> linkIterator = mLinks.iterator();
-
-        while(linkIterator.hasNext()){
-
-
-            Link link = linkIterator.next();
-            System.out.println("Checking Link " + link.getLinkID() + " from Node " + mRouterID + " routing table to add entry.");
-
-            if(link.getDestinationNode().getRouterID() == nextHopNode.getRouterID()){
-                System.out.println("Found corresponding Link " + link.getLinkID() + " in Node " + mRouterID + " and is now adding routing entry.");
-
-                linkToUse = link;
-            }
-
-        }
-
-        RoutingEntry routingEntry = new RoutingEntry(nextHopNode, destinationNode, linkToUse);
-        mRoutingEntries.add(routingEntry);
-    }
-
-    public void transmitDataToReceiverGivenRID(int routerID, String stringToSend) {
+    public void forwardMessageOverConnection(int routerID, String stringToSend) {
 
         /**
          * IMPLEMENTATION
@@ -236,5 +161,79 @@ public class Node {
                 }
             }
         }
+    }
+
+
+
+    public int getRouterID() {
+        return mRouterID;
+    }
+    public Role getRole() {
+        return mRole;
+    }
+    public InetAddress getIPAddress() {
+        return mIPAddress;
+    }
+    public int getReceivingPacketRate() {
+        return mReceivingPacketRate;
+    }
+    public int getListeningPort() {
+        return mListeningPort;
+    }
+    public ArrayList<Link> getLinks() {
+        return mLinks;
+    }
+    public ArrayList<RoutingEntry> getRoutingEntries() {
+        return mRoutingEntries;
+    }
+    public ServerSocket getServerListeningSocket() {
+        return mServerListeningSocket;
+    }
+    public Socket getServerSocket() {
+        return mServerSocket;
+    }
+
+    public void addDestinationNode(Node destinationNode){
+
+        Iterator<Link> linkIterator = mLinks.iterator();
+
+        while(linkIterator.hasNext()){
+            Link link = linkIterator.next();
+
+            if(link.getDestinationNode().getRouterID() == destinationNode.getRouterID()){
+                // link to destination node already exists update link information
+
+                System.out.println("Updating link information ...");
+                link.setDestinationNode(destinationNode);
+                link.setPort(destinationNode.getListeningPort());
+                link.setSourceNode(this);
+                return;
+            }
+        }
+
+        // Will add new destination node if existing link is not found
+        mLinks.add(new Link(this, destinationNode, destinationNode.getListeningPort(), Link.DEFAULT_COST));
+    }
+
+    public void addRoutingEntry(Node nextHopNode, Node destinationNode){
+        Link linkToUse = new Link();
+
+        Iterator<Link> linkIterator = mLinks.iterator();
+
+        while(linkIterator.hasNext()){
+
+            Link link = linkIterator.next();
+
+
+            if(link.getDestinationNode().getRouterID() == nextHopNode.getRouterID()){
+                System.out.println("Using Link " + link.getLinkID() + " in Node " + mRouterID + " and is now adding routing entry for destination Node " + destinationNode.getRouterID());
+
+                linkToUse = link;
+            }
+
+        }
+
+        RoutingEntry routingEntry = new RoutingEntry(nextHopNode, destinationNode, linkToUse);
+        mRoutingEntries.add(routingEntry);
     }
 }
