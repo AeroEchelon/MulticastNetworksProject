@@ -26,4 +26,16 @@ public class RoutingEntry {
     public Link getLink() {
         return mLink;
     }
+
+    public void setNextHopNode(Node mNextHopNode) {
+        this.mNextHopNode = mNextHopNode;
+    }
+
+    public void setDestinationNode(Node mDestinationNode) {
+        this.mDestinationNode = mDestinationNode;
+    }
+
+    public void setmLink(Link mLink) {
+        this.mLink = mLink;
+    }
 }
