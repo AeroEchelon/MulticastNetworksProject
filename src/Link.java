@@ -24,7 +24,8 @@ public class Link extends Thread{
     private Node                mDestinationNode;
     private int                 mConnectionPort;
     private int                 mCost;
-    private static int          mLinkID = 0;
+    private static int          mLinkIDcounter = 1;
+    private int                 mLinkID;
 
     private Socket              mSocket;                     // Socket to connect to server
     private String              mMessageToSend;
@@ -35,13 +36,13 @@ public class Link extends Thread{
     }
 
     public Link(Node sourceNode, Node destinationNode, int connectionPort,  int cost) {
+
         mSourceNode = sourceNode;
         mDestinationNode = destinationNode;
-        mListeningPort = listeningPort;
         mConnectionPort = connectionPort;
         mCost = cost;
-        mLinkID++;
-        System.out.println("A new link has been created connecting Node " + mSourceNode.getRouterID() + " to Node " + mDestinationNode.getRouterID() + " over Link " + mLinkID);
+        mLinkID = mLinkIDcounter++;
+        System.out.println("A new link with Link ID " + mLinkID + " has been created connecting Node " + mSourceNode.getRouterID() + " to Node " + mDestinationNode.getRouterID() + " over Link " + mLinkID);
     }
 
     public void setCost(int cost) {
@@ -85,7 +86,7 @@ public class Link extends Thread{
 
         try {
             mSocket = new Socket(Node.LOCAL_HOST, mConnectionPort);
-            System.out.println("Link " + mLinkID + " as been initialized and Node " + mSourceNode.getRouterID() + " is connected to Node " + mDestinationNode.getRouterID() + " on address " + mSocket.getRemoteSocketAddress());
+            System.out.println("Link " + mLinkID + " as been initialized and Node " + mSourceNode.getRouterID() + " is connected to Node " + mDestinationNode.getRouterID() + " on server Node  " + mDestinationNode.getRouterID() + " on remote address " + mSocket.getRemoteSocketAddress());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -94,17 +95,18 @@ public class Link extends Thread{
     public void transmitString(){
 
         try {
-            System.out.println("Node " + mSourceNode.getRouterID() + " is using NodeThis is Link " + mLinkID + " being used to transmit data.");
+            System.out.println("Node " + mSourceNode.getRouterID() + " is using this its Link " + mLinkID + " to transmit data.");
 
-            OutputStream outToServer = mSocket.getOutputStream();
-            DataOutputStream out = new DataOutputStream(outToServer);
-            out.writeUTF("Hello from " + mSocket.getLocalSocketAddress());
-            InputStream inFromServer = mSocket.getInputStream();
-            DataInputStream in = new DataInputStream(inFromServer);
-            System.out.println("Server says " + in.readUTF());
+            // Transmitting message
             OutputStream outputStream = mSocket.getOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
             dataOutputStream.writeUTF(mMessageToSend);
+
+            // Expecting Acknowledgement from Server
+            InputStream inFromServer = mSocket.getInputStream();
+            DataInputStream in = new DataInputStream(inFromServer);
+            System.out.println(in.readUTF());
+
             mSocket.close();
         } catch (IOException e) {
 
