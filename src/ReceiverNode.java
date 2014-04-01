@@ -19,7 +19,7 @@ final class ReceiverNode extends Node {
      * @param listeningPort
      * @param receivingPacketRate
      */
-    public ReceiverNode(int routerID, String stringAddressOfNode, int listeningPort, int receivingPacketRate, ArrayList<Integer> groupIDs) {
+    public ReceiverNode(double routerID, String stringAddressOfNode, int listeningPort, int receivingPacketRate, ArrayList<Integer> groupIDs) {
         super(routerID, Role.RECEIVER, stringAddressOfNode, listeningPort, receivingPacketRate);
         mListOfGroupMembershipIDs = groupIDs;
     }

@@ -15,17 +15,6 @@ import java.net.SocketTimeoutException;
 final class ForwarderNode extends Node{
 
 
-    /**
-     * A lazy constructor only requiring ID, role and listening for node creation.
-     *
-     * IP Address and packet rate are set to default.
-     *
-     * @param routerID      Router ID.
-     * @param listeningPort Port to listen for incoming connections.
-     */
-    public ForwarderNode(int routerID, int listeningPort) {
-        this(routerID, Role.FORWARDER, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
-    }
 
     /**
      * Primary node constructor.
@@ -35,9 +24,20 @@ final class ForwarderNode extends Node{
      * @param listeningPort
      * @param receivingPacketRate
      */
-    public ForwarderNode(int routerID, Role role, int listeningPort, int receivingPacketRate) {
-        super(routerID, Role.FORWARDER, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
+    public ForwarderNode(double routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
+        super(routerID, Role.FORWARDER, stringAddressOfNode, listeningPort, receivingPacketRate);
 
+    }
+    /**
+     * A lazy constructor only requiring ID, role and listening for node creation.
+     *
+     * IP Address and packet rate are set to default.
+     *
+     * @param routerID      Router ID.
+     * @param listeningPort Port to listen for incoming connections.
+     */
+    public ForwarderNode(double routerID, int listeningPort) {
+        this(routerID, Role.FORWARDER, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
     }
 
     /**
