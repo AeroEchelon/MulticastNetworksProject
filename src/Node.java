@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -21,7 +22,7 @@ abstract class Node {
     public static final int         DEFAULT_RECEIVING_PACKET_RATE = 1;
     public static final String      LOCAL_HOST = "localhost";
 
-    private int                     mRouterID;                  // Integer ID of router
+    private double                  mRouterID;                  // Integer ID of router
     private Role                    mRole;                      // 0 for receiver, 1 for forwarder, 2 for source
     private InetAddress             mIPAddress;
     private int                     mReceivingPacketRate;       // The rate to receive packets
@@ -33,6 +34,8 @@ abstract class Node {
 
     private ServerSocket            mServerSocket;              // Socket to listen for incoming connections
     private Socket                  mSocket;
+
+    private String                  mMessageToSendToController; // The message to send to controller
 
     /**
      * Each Node can either be a SOURCE, FORWARDER or RECEIVER
@@ -48,7 +51,7 @@ abstract class Node {
      * @param role          Role of router.
      * @param listeningPort Port to listen for incoming connections.
      */
-    public Node(int routerID, Role role, int listeningPort){
+    public Node(double routerID, Role role, int listeningPort){
         this(routerID, role, LOCAL_HOST, listeningPort, DEFAULT_RECEIVING_PACKET_RATE);
     }
 
@@ -59,7 +62,7 @@ abstract class Node {
      * @param role
      * @param stringAddressOfNode
      */
-    public Node(int routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
+    public Node(double routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
         mRouterID = routerID;
         mRole = role;
         mListeningPort = listeningPort;
@@ -88,7 +91,6 @@ abstract class Node {
         System.out.println("Node " + mRouterID + " <Role " + mRole + ", Listening Port " + mListeningPort + ", Receiving Packet Rate " + mReceivingPacketRate + ">");
     }
 
-
     /**
      *  This method is the last method that should be set after all node parameters have been initialized.
      *
@@ -96,7 +98,7 @@ abstract class Node {
      */
     public abstract void initialize();
 
-    public int getRouterID() {
+    public double getRouterID() {
         return mRouterID;
     }
     public Role getRole() {
@@ -249,7 +251,7 @@ abstract class Node {
 
             if (routingEntry.getDestinationNode().getRouterID() == destinationRouterID){
 
-                int nextHopID = routingEntry.getNextHopNode().getRouterID();
+                double nextHopID = routingEntry.getNextHopNode().getRouterID();
 
                 Iterator<Link> linkIterator = mLinks.iterator();
 

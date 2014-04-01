@@ -16,8 +16,8 @@ final class SourceNode extends Node{
      *
      * @param listeningPort Port to listen for incoming connections.
      */
-    public SourceNode(int listeningPort) {
-        super(1, Role.SOURCE, listeningPort);
+    public SourceNode(int role, int listeningPort) {
+        super(role, Role.SOURCE, listeningPort);
     }
 
     /**
