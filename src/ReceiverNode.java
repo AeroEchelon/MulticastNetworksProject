@@ -2,11 +2,17 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 
 /**
  * Created by marvinbernal on 2014-03-30.
  */
 final class ReceiverNode extends Node {
+
+
+
+    private ArrayList<Integer> mListOfGroupMembershipIDs;
+
     /**
      * Primary node constructor.
      *
@@ -15,8 +21,9 @@ final class ReceiverNode extends Node {
      * @param listeningPort
      * @param receivingPacketRate
      */
-    public ReceiverNode(int routerID, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
+    public ReceiverNode(int routerID, String stringAddressOfNode, int listeningPort, int receivingPacketRate, ArrayList<Integer> groupIDs) {
         super(routerID, Role.RECEIVER, stringAddressOfNode, listeningPort, receivingPacketRate);
+        mListOfGroupMembershipIDs = groupIDs;
     }
 
     /**
@@ -26,8 +33,10 @@ final class ReceiverNode extends Node {
      *
      * @param listeningPort Port to listen for incoming connections.
      */
-    public ReceiverNode(int listeningPort) {
-        super(4, Role.RECEIVER, listeningPort);
+    public ReceiverNode(int routerID, int listeningPort, ArrayList<Integer> defaultGroupIDs) {
+        this(routerID, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE, defaultGroupIDs);
+
+
     }
 
     /**
