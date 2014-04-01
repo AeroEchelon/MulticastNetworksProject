@@ -31,7 +31,7 @@ final class ReceiverNode extends Node {
      *
      * @param listeningPort Port to listen for incoming connections.
      */
-    public ReceiverNode(int routerID, int listeningPort, ArrayList<Integer> defaultGroupIDs) {
+    public ReceiverNode(double routerID, int listeningPort, ArrayList<Integer> defaultGroupIDs) {
         this(routerID, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE, defaultGroupIDs);
     }
 

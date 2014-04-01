@@ -14,17 +14,14 @@ import java.net.SocketTimeoutException;
  */
 final class ForwarderNode extends Node{
 
-
-
     /**
      * Primary node constructor.
      *
      * @param routerID
-     * @param role
      * @param listeningPort
      * @param receivingPacketRate
      */
-    public ForwarderNode(double routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
+    public ForwarderNode(double routerID, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
         super(routerID, Role.FORWARDER, stringAddressOfNode, listeningPort, receivingPacketRate);
 
     }
@@ -37,7 +34,7 @@ final class ForwarderNode extends Node{
      * @param listeningPort Port to listen for incoming connections.
      */
     public ForwarderNode(double routerID, int listeningPort) {
-        this(routerID, Role.FORWARDER, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
+        this(routerID, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
     }
 
     /**
