@@ -37,8 +37,14 @@ public class MainFunction {
         System.out.println("\nEstablishing physical links ...");
         aNode.addDestinationNode(bNode);
         aNode.addDestinationNode(cNode);
-        aNode.addDestinationNode(dNode);
 
+        bNode.addDestinationNode(dNode);
+        cNode.addDestinationNode(dNode);
+
+        // Add Routing Entries
+
+        aNode.addRoutingEntry(cNode, dNode);
+        aNode.addRoutingEntry(cNode, cNode);
 
         System.out.println("\nInitializing nodes ...");
 

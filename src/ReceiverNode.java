@@ -3,11 +3,14 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by marvinbernal on 2014-03-30.
  */
 final class ReceiverNode extends Node {
+
+    public static final String REQUEST_TO_FORWARDER = "REQUESTFROMRECEIVER";
 
     private ArrayList<Integer> mListOfGroupMembershipIDs;
 
@@ -71,5 +74,15 @@ final class ReceiverNode extends Node {
                 }
             }
         }.start();
+    }
+
+
+    @Override
+    public void configureRoutingTable() {
+        // Will listen for response from Controller node and create node based off of response from controller
+        // Receiver node will have no routing entries
+
+        String linkIDToForwarder = getMessageReceivedFromController();
+        sendPacket(Double.parseDouble(linkIDToForwarder), REQUEST_TO_FORWARDER + ", " + getRouterID());
     }
 }

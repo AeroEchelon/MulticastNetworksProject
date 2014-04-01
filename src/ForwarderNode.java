@@ -2,6 +2,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.Iterator;
+import java.util.StringTokenizer;
 
 /**
  * Created by marvinbernal on 2014-03-31.
@@ -40,7 +42,6 @@ final class ForwarderNode extends Node{
     /**
      * Initialize will begin to listen for incoming connections and proceed to forward it to the next hop node as denoted
      * in the packet structure.
-     *
      */
     @Override
     public void initialize() {
@@ -53,6 +54,53 @@ final class ForwarderNode extends Node{
                         setSocket(getServerSocket().accept()); // blocks until a connection is made
                         DataInputStream in = new DataInputStream(getSocket().getInputStream());
                         String incomingMessage = in.readUTF();
+
+                        StringTokenizer tokenPacket = new StringTokenizer(incomingMessage,", ");
+
+                        // Example: C, 2
+                        // Which means Controller, Link ID 2
+                        String typeOfNodeReceivedFrom = tokenPacket.nextToken();
+                        String nodeIdToAddRoutingEntryFor = tokenPacket.nextToken();
+
+                        if(typeOfNodeReceivedFrom.equals("C")){
+
+                            Iterator<Link> linkIterator = getLinks().iterator();
+
+                            while(linkIterator.hasNext()){
+                                Link link = linkIterator.next();
+
+                                if((link.getDestinationNode().getRouterID() == Double.parseDouble(nodeIdToAddRoutingEntryFor)) && (link.getDestinationNode().getRole() == Role.FORWARDER)){
+                                    // Adding forwarder node to routing table
+                                    addRoutingEntry(link.getDestinationNode(), link.getDestinationNode());
+                                }
+                            }
+
+                        }else if(typeOfNodeReceivedFrom.equals(SourceNode.REQUEST_TO_FORWARDER)){
+                            // Will be expecting a response from SOURCE
+
+                        }else if(typeOfNodeReceivedFrom.equals(ReceiverNode.REQUEST_TO_FORWARDER)){
+
+                            /**
+                             * Based on the receiver response, this node will iterate through each of it's links
+                             * and find the destination node ID that matches this receiver.
+                             *
+                             * Once it finds this information it adds a routing entry to itself with the next hop
+                             * node and destination node equal to the receiver node.
+                             */
+
+                            Iterator<Link> linkIterator = getLinks().iterator();
+
+                            while(linkIterator.hasNext()){
+                                Link link = linkIterator.next();
+
+                                if(link.getDestinationNode().getRouterID() == Double.parseDouble(nodeIdToAddRoutingEntryFor)){
+                                    addRoutingEntry(link.getDestinationNode(), link.getDestinationNode());
+
+                                }
+                            }
+
+                        }else{
+
                         System.out.println("<Node " + getRouterID() + " @ " + getIPAddress() + " receives message " + incomingMessage + "\" from remote address " + getSocket().getRemoteSocketAddress());
 
                         DataOutputStream out = new DataOutputStream(getSocket().getOutputStream());
@@ -61,6 +109,8 @@ final class ForwarderNode extends Node{
                         // Forward Data
                         sendPacket(Integer.parseInt(incomingMessage), incomingMessage);
                         getSocket().close();
+
+                        }
 
                     }catch(SocketTimeoutException socketTimeoutException){
 
@@ -72,5 +122,13 @@ final class ForwarderNode extends Node{
                 }
             }
         }.start();
+    }
+
+    /**
+     * Sends all link information to destination node.
+     */
+    @Override
+    public void configureRoutingTable() {
+        initialize();
     }
 }

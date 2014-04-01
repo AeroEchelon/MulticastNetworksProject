@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Iterator;
 
 /**
  * Created by marvinbernal on 2014-03-31.
@@ -9,6 +10,8 @@ import java.io.InputStreamReader;
  */
 final class SourceNode extends Node{
 
+    public static final String REQUEST_TO_FORWARDER = "S";
+
     /**
      * A lazy constructor only requiring ID, role and listening for node creation.
      *
@@ -16,21 +19,20 @@ final class SourceNode extends Node{
      *
      * @param listeningPort Port to listen for incoming connections.
      */
-    public SourceNode(int role, int listeningPort) {
-        super(role, Role.SOURCE, listeningPort);
+    public SourceNode(double routerID, int listeningPort) {
+        super(routerID, Role.SOURCE, listeningPort);
     }
 
     /**
      * Primary node constructor.
      *
      * @param routerID
-     * @param role
      * @param stringAddressOfNode
      * @param listeningPort
      * @param receivingPacketRate
      */
-    public SourceNode(int routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
-        super(routerID, role, stringAddressOfNode, listeningPort, receivingPacketRate);
+    public SourceNode(double routerID, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
+        super(routerID, Role.SOURCE, stringAddressOfNode, listeningPort, receivingPacketRate);
     }
 
     /**
@@ -77,6 +79,27 @@ final class SourceNode extends Node{
                 System.out.println("Goodbye!");
                 System.exit(0);
             }
+
+        }
+    }
+
+    /**
+     * Sends all link information to destination node.
+     */
+    @Override
+    public void configureRoutingTable() {
+        /**
+         * This source will iterate through all of its links and add routing entries to each forwarder node.
+         */
+
+        Iterator<Link> linkIterator = getLinks().iterator();
+
+        while(linkIterator.hasNext()){
+            Link link = linkIterator.next();
+
+            addRoutingEntry(link.getDestinationNode(), link.getDestinationNode());
+
+            link.getDestinationNode();
 
         }
     }

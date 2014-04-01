@@ -1,9 +1,5 @@
-import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -22,20 +18,23 @@ abstract class Node {
     public static final int         DEFAULT_RECEIVING_PACKET_RATE = 1;
     public static final String      LOCAL_HOST = "localhost";
 
+    /* Primary Attributes of a Node */
+
     private double                  mRouterID;                  // Integer ID of router
     private Role                    mRole;                      // 0 for receiver, 1 for forwarder, 2 for source
     private InetAddress             mIPAddress;
     private int                     mReceivingPacketRate;       // The rate to receive packets
 
-    private int                     mListeningPort;             // The port to listen to incoming connections
+    /* Additional attributes to establish connections across the network */
 
     private ArrayList<Link>         mLinks;                     // Destination links
     private ArrayList<RoutingEntry> mRoutingEntries;            // Routing entries.
-
+    private int                     mListeningPort;             // The port to listen to incoming connections
     private ServerSocket            mServerSocket;              // Socket to listen for incoming connections
     private Socket                  mSocket;
 
     private String                  mMessageToSendToController; // The message to send to controller
+    private String                  mMessageReceivedFromController; // The link state information received from controller
 
     /**
      * Each Node can either be a SOURCE, FORWARDER or RECEIVER
@@ -91,12 +90,23 @@ abstract class Node {
         System.out.println("Node " + mRouterID + " <Role " + mRole + ", Listening Port " + mListeningPort + ", Receiving Packet Rate " + mReceivingPacketRate + ">");
     }
 
+    private void constructMessageToSendToController(){
+        // TODO Insert code to construct mMessageToSendToController to match the interface of what the Controller is expecting
+        // Assign result to mMessageToSendToController
+    }
+
+    public void sendNodeInformationToController(int routerIDOfController){
+        constructMessageToSendToController();
+        sendPacket(getRouterID(), mMessageToSendToController);
+        configureRoutingTable();
+    }
+
     /**
-     *  This method is the last method that should be set after all node parameters have been initialized.
+     * Sends all link information to destination node.
      *
-     *  It is responsible for listening for incoming packets and forwarding outgoing packets.
+     * @param routerID The node which will be receiving the link information about this node.
      */
-    public abstract void initialize();
+    public abstract void configureRoutingTable();
 
     public double getRouterID() {
         return mRouterID;
@@ -129,8 +139,13 @@ abstract class Node {
     public ServerSocket getServerSocket() {
         return mServerSocket;
     }
+
     public Socket getSocket() {
         return mSocket;
+    }
+
+    public String getMessageReceivedFromController() {
+        return mMessageReceivedFromController;
     }
 
     public void setReceivingPacketRate(int mReceivingPacketRate) {
@@ -230,7 +245,7 @@ abstract class Node {
      * @param destinationRouterID   The node ID to receive message.
      * @param stringToSend          The message to send.
      */
-    public void sendPacket(int destinationRouterID, String stringToSend) {
+    public void sendPacket(double destinationRouterID, String stringToSend) {
 
         /**
          * IMPLEMENTATION
@@ -272,4 +287,11 @@ abstract class Node {
 
         System.out.println("No routing entry found in Node " + mRouterID + " for destination Node " + destinationRouterID);
     }
+
+    /**
+     *  This method is the last method that should be set after all node parameters have been initialized.
+     *  It is responsible for listening for incoming packets and forwarding outgoing packets.
+     */
+    public abstract void initialize();
+
 }
