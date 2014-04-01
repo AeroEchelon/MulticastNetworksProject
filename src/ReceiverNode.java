@@ -9,8 +9,6 @@ import java.util.ArrayList;
  */
 final class ReceiverNode extends Node {
 
-
-
     private ArrayList<Integer> mListOfGroupMembershipIDs;
 
     /**
@@ -35,8 +33,6 @@ final class ReceiverNode extends Node {
      */
     public ReceiverNode(int routerID, int listeningPort, ArrayList<Integer> defaultGroupIDs) {
         this(routerID, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE, defaultGroupIDs);
-
-
     }
 
     /**
@@ -75,7 +71,5 @@ final class ReceiverNode extends Node {
                 }
             }
         }.start();
-
-
     }
 }

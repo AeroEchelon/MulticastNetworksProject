@@ -62,7 +62,7 @@ final class ForwarderNode extends Node{
                         out.writeUTF("--- Node " + getRouterID() + " acknowledges message from " + getSocket().getRemoteSocketAddress());
 
                         // Forward Data
-                        sendMessageGivenRouterID(Integer.parseInt(incomingMessage), incomingMessage);
+                        sendPacket(Integer.parseInt(incomingMessage), incomingMessage);
                         getSocket().close();
 
                     }catch(SocketTimeoutException socketTimeoutException){

@@ -61,7 +61,7 @@ final class SourceNode extends Node{
                     getSocket().close();
                     System.exit(0);
                 }else{
-                    sendMessageGivenRouterID(Integer.parseInt(messageToSend), messageToSend);
+                    sendPacket(Integer.parseInt(messageToSend), messageToSend);
                 }
 
 

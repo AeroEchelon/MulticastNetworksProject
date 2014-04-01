@@ -41,7 +41,7 @@ abstract class Node {
      * Each Node can either be a SOURCE, FORWARDER or RECEIVER
      */
     public enum Role{
-        SOURCE, FORWARDER, RECEIVER
+        SOURCE, FORWARDER, RECEIVER, CONTROLLER
     }
 
     /**
@@ -101,6 +101,7 @@ abstract class Node {
     public double getRouterID() {
         return mRouterID;
     }
+
     public Role getRole() {
         return mRole;
     }
@@ -112,6 +113,7 @@ abstract class Node {
     public int getReceivingPacketRate() {
         return mReceivingPacketRate;
     }
+
     public int getListeningPort() {
         return mListeningPort;
     }
@@ -189,7 +191,6 @@ abstract class Node {
                 duplicateRoutingEntryNotFound = false;
                 routingEntry.setNextHopNode(nextHopNode);
             }
-
         }
 
         /**
@@ -211,9 +212,7 @@ abstract class Node {
                     RoutingEntry routingEntry = new RoutingEntry(nextHopNode, destinationNode, link);
                     mRoutingEntries.add(routingEntry);
                 }
-
             }
-
         }
 
         if(linkNotFound){
@@ -222,7 +221,7 @@ abstract class Node {
     }
 
     /**
-     * Sends a message from this node to a destination node. This desintation node does not have to be directly
+     * Sends a message from this node to a destination node. This destination node does not have to be directly
      * connected to this node. Given the destination ID, it will look up in its routing table if it has a path
      * to the next hop node.
      *
@@ -231,7 +230,7 @@ abstract class Node {
      * @param destinationRouterID   The node ID to receive message.
      * @param stringToSend          The message to send.
      */
-    public void sendMessageGivenRouterID(int destinationRouterID, String stringToSend) {
+    public void sendPacket(int destinationRouterID, String stringToSend) {
 
         /**
          * IMPLEMENTATION
