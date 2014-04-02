@@ -83,30 +83,8 @@ abstract class Node {
             e.printStackTrace();
         }
 
-        // Upon creating this node will add itself as a known destination node
-//        this.addDestinationNode(this);
-//        this.addRoutingEntry(this, this);
-
         System.out.println("Node " + mRouterID + " <Role " + mRole + ", Listening Port " + mListeningPort + ", Receiving Packet Rate " + mReceivingPacketRate + ">");
     }
-
-    private void constructMessageToSendToController(){
-        // TODO Insert code to construct mMessageToSendToController to match the interface of what the Controller is expecting
-        // Assign result to mMessageToSendToController
-    }
-
-    public void sendNodeInformationToController(int routerIDOfController){
-        constructMessageToSendToController();
-        sendPacket(getRouterID(), mMessageToSendToController);
-        configureRoutingTable();
-    }
-
-    /**
-     * Sends all link information to destination node.
-     *
-     * @param routerID The node which will be receiving the link information about this node.
-     */
-    public abstract void configureRoutingTable();
 
     public double getRouterID() {
         return mRouterID;
@@ -234,6 +212,25 @@ abstract class Node {
             System.out.println("No physical link from Node " + mRouterID + " to Node " +destinationNode.getRouterID() + " has been established.");
         }
     }
+
+    private void constructMessageToSendToController(){
+        // TODO Insert code to construct mMessageToSendToController to match the interface of what the Controller is expecting
+        // Assign result to mMessageToSendToController
+    }
+
+    public void sendNodeInformationToController(int routerIDOfController){
+        constructMessageToSendToController();
+        sendPacket(routerIDOfController, mMessageToSendToController);
+        configureRoutingTable();
+    }
+
+    /**
+     * Sends all link information to destination node.
+     *
+     * @param routerID The node which will be receiving the link information about this node.
+     */
+    public abstract void configureRoutingTable();
+
 
     /**
      * Sends a message from this node to a destination node. This destination node does not have to be directly
