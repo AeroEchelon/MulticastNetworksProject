@@ -57,10 +57,8 @@ final class ForwarderNode extends Node{
 
                         StringTokenizer tokenPacket = new StringTokenizer(incomingMessage,", ");
 
-                        // Example: C, 2
-                        // Which means Controller, Link ID 2
                         String typeOfNodeReceivedFrom = tokenPacket.nextToken();
-                        String nodeIdToAddRoutingEntryFor = tokenPacket.nextToken();
+                        String linkID = tokenPacket.nextToken();
 
                         if(typeOfNodeReceivedFrom.equals("C")){
 
@@ -69,7 +67,8 @@ final class ForwarderNode extends Node{
                             while(linkIterator.hasNext()){
                                 Link link = linkIterator.next();
 
-                                if((link.getDestinationNode().getRouterID() == Double.parseDouble(nodeIdToAddRoutingEntryFor)) && (link.getDestinationNode().getRole() == Role.FORWARDER)){
+                                if((link.getLinkID() == Double.parseDouble(linkID))){
+
                                     // Adding forwarder node to routing table
                                     addRoutingEntry(link.getDestinationNode(), link.getDestinationNode());
                                 }
@@ -77,6 +76,7 @@ final class ForwarderNode extends Node{
 
                         }else if(typeOfNodeReceivedFrom.equals(SourceNode.REQUEST_TO_FORWARDER)){
                             // Will be expecting a response from SOURCE
+                            // Confirm link request
 
                         }else if(typeOfNodeReceivedFrom.equals(ReceiverNode.REQUEST_TO_FORWARDER)){
 
@@ -93,7 +93,7 @@ final class ForwarderNode extends Node{
                             while(linkIterator.hasNext()){
                                 Link link = linkIterator.next();
 
-                                if(link.getDestinationNode().getRouterID() == Double.parseDouble(nodeIdToAddRoutingEntryFor)){
+                                if(link.getLinkID() == Double.parseDouble(linkID)){
                                     addRoutingEntry(link.getDestinationNode(), link.getDestinationNode());
 
                                 }
