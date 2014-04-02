@@ -10,6 +10,8 @@ import java.util.Iterator;
  */
 final class SourceNode extends Node{
 
+    Link currentImmediateLink;
+
     public static final String REQUEST_TO_FORWARDER = "S";
 
     /**
@@ -36,6 +38,25 @@ final class SourceNode extends Node{
     }
 
     /**
+     * This is a recursive function that will add routing entries to all nodes in the entire network as destination nodes
+     *
+     * @param nextHopNode
+     */
+    private void addRoutingEntryForEveryNodeBeyondNextHopNode(Node nextHopNode){
+
+        Iterator<Link> linkIterator = getLinks().iterator();
+
+        while(linkIterator.hasNext()){
+
+            while(!nextHopNode.getLinks().isEmpty()){
+                addRoutingEntryForEveryNodeBeyondNextHopNode(nextHopNode);
+            }
+
+            this.addRoutingEntry(currentImmediateLink.getDestinationNode(), nextHopNode);
+        }
+    }
+
+    /**
      * Initialize will initiate a request for user input to be sent to any other node on the network.
      *
      * Because of this, this node should be initialized after the network is stabilized.
@@ -43,7 +64,10 @@ final class SourceNode extends Node{
     @Override
     public void initialize() {
 
-        System.out.println("Enter something here : ");
+        System.out.println("Enter string with the following syntax:\nRECEIVER_NODE_ID, MESSAGE");
+
+        // Iterate through all links and add each link to routing table. This is possible because this is the source node.
+        addRoutingEntryForEveryNodeBeyondNextHopNode(this);
 
         while(true){
 
