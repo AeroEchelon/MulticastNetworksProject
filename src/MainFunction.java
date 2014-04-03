@@ -42,7 +42,7 @@ public class MainFunction {
         Node aNode = new SourceNode(1, aListeningPort);
         Node bNode = new ForwarderNode(2, bListeningPort);
         Node cNode = new ForwarderNode(3, cListeningPort);
-        Node dNode = new ReceiverNode(3, dListeningPort);
+        Node dNode = new ReceiverNode(4, dListeningPort);
 
         System.out.println("\nEstablishing physical links ...");
         aNode.addDestinationNode(bNode);
