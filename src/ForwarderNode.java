@@ -2,6 +2,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.StringTokenizer;
 
 /**
  * Created by marvinbernal on 2014-03-31.
@@ -43,7 +44,6 @@ final class ForwarderNode extends Node{
     /**
      * Initialize will begin to listen for incoming connections and proceed to forward it to the next hop node as denoted
      * in the packet structure.
-     *
      */
     @Override
     public void initialize() {
@@ -55,14 +55,24 @@ final class ForwarderNode extends Node{
                     try{
                         setSocket(getServerSocket().accept()); // blocks until a connection is made
                         DataInputStream in = new DataInputStream(getSocket().getInputStream());
-                        String incomingMessage = in.readUTF();
-                        System.out.println("<Node " + getRouterID() + " @ " + getIPAddress() + " receives message " + incomingMessage + "\" from remote address " + getSocket().getRemoteSocketAddress());
+                        String packet = in.readUTF();
+
+                        StringTokenizer tokenPacket = new StringTokenizer(packet,", ");
+
+                        String packetDestination = tokenPacket.nextToken();
+
+                        String message = tokenPacket.nextToken();
+
+
+                        System.out.println("<Node " + getRouterID() + " @ " + getIPAddress() + " receives message \"" + message + "\" from remote address " + getSocket().getRemoteSocketAddress());
+
+
 
                         DataOutputStream out = new DataOutputStream(getSocket().getOutputStream());
                         out.writeUTF("--- Node " + getRouterID() + " acknowledges message from " + getSocket().getRemoteSocketAddress());
 
                         // Forward Data
-                        sendMessageGivenRouterID(Integer.parseInt(incomingMessage), incomingMessage);
+                        sendMessageGivenRouterID(Integer.parseInt(packetDestination), packet);
                         getSocket().close();
 
                     }catch(SocketTimeoutException socketTimeoutException){

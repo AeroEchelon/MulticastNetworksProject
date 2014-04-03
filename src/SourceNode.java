@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 /**
  * Created by marvinbernal on 2014-03-31.
@@ -41,14 +42,19 @@ final class SourceNode extends Node{
     @Override
     public void initialize() {
 
-        System.out.println("Enter something here : ");
-
-        while(true){
+        System.out.println("Please construct a packet <destinationID, message> that will traverse through the network to the receiver.");
+        System.out.println("For the purposes of the topology outlined below, the receiver ID is \"4\"");
 
             String messageToSend;
+            String receiverID;
             try{
                 BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
+                System.out.print("Enter the ID of the node you wish this packet to transfer to: ");
+                receiverID = bufferRead.readLine();
+                System.out.print("Enter Message to send to receiver: ");
                 messageToSend = bufferRead.readLine();
+
+                messageToSend = receiverID + ", " + messageToSend;
 
                 System.out.println("This will be the message sent: " + messageToSend);
                 Thread.sleep(1000);
@@ -61,7 +67,13 @@ final class SourceNode extends Node{
                     getSocket().close();
                     System.exit(0);
                 }else{
-                    sendMessageGivenRouterID(Integer.parseInt(messageToSend), messageToSend);
+
+                    StringTokenizer tokenPacket = new StringTokenizer(messageToSend,", ");
+
+                    String packetDestination = tokenPacket.nextToken();
+                    String message = tokenPacket.nextToken();
+
+                    sendMessageGivenRouterID(Integer.parseInt(packetDestination), messageToSend);
                 }
 
 
@@ -78,6 +90,5 @@ final class SourceNode extends Node{
                 System.exit(0);
             }
 
-        }
     }
 }

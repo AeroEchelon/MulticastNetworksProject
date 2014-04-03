@@ -1,13 +1,12 @@
 /**
  * Created by marvinbernal on 2014-03-29.
  */
-public class ServerNode {
+public class MainFunction {
 
     /* CONSTANTS */
 
     private static final int CLIENT_ID = 1;
     private static final int SERVER_ID = 2;
-
 
     public static void main (String... arg) throws InterruptedException{
 
