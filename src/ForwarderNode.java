@@ -17,28 +17,26 @@ final class ForwarderNode extends Node{
 
 
     /**
-     * A lazy constructor only requiring ID, role and listening for node creation.
+     * A lazy constructor only requiring ID and listening for node creation. This router is assumed to be created on the
+     * local machine.
      *
-     * IP Address and packet rate are set to default.
-     *
-     * @param routerID      Router ID.
+     * @param nodeID      Node ID.
      * @param listeningPort Port to listen for incoming connections.
      */
-    public ForwarderNode(int routerID, int listeningPort) {
-        this(routerID, Role.FORWARDER, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
+    public ForwarderNode(int nodeID, int listeningPort) {
+        this(nodeID, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
     }
 
     /**
-     * Primary node constructor.
+     * Primary forward node constructor.
      *
-     * @param routerID
-     * @param role
-     * @param listeningPort
-     * @param receivingPacketRate
+     * @param nodeID                The ID of the node.
+     * @param IPAddress             The IPAddress of the node.
+     * @param listeningPort         The listening port used to listen for incoming connections.
+     * @param receivingPacketRate   The packet rate at which this node can recieving incoming packets.
      */
-    public ForwarderNode(int routerID, Role role, int listeningPort, int receivingPacketRate) {
-        super(routerID, Role.FORWARDER, Node.LOCAL_HOST, listeningPort, Node.DEFAULT_RECEIVING_PACKET_RATE);
-
+    public ForwarderNode(int nodeID, String IPAddress,  int listeningPort, int receivingPacketRate) {
+        super(nodeID, Role.FORWARDER, IPAddress, listeningPort, receivingPacketRate);
     }
 
     /**
@@ -53,23 +51,25 @@ final class ForwarderNode extends Node{
 
                 while(true){
                     try{
+                        // Listening for incoming socket connections from other nodes
                         setSocket(getServerSocket().accept()); // blocks until a connection is made
                         DataInputStream in = new DataInputStream(getSocket().getInputStream());
                         String packet = in.readUTF();
 
+                        // Tokenizing input packet to obtain destination and message
                         StringTokenizer tokenPacket = new StringTokenizer(packet,", ");
-
                         String packetDestination = tokenPacket.nextToken();
-
                         String message = tokenPacket.nextToken();
 
+                        // Printing out status information to output
+                        System.out.println("<Node " + getNodeID() + " @ " + getIPAddress()
+                                + " receives message \"" + message + "\" from remote address "
+                                + getSocket().getRemoteSocketAddress());
 
-                        System.out.println("<Node " + getRouterID() + " @ " + getIPAddress() + " receives message \"" + message + "\" from remote address " + getSocket().getRemoteSocketAddress());
-
-
-
+                        // Replies back on existing socket to client acknowledging this request.
                         DataOutputStream out = new DataOutputStream(getSocket().getOutputStream());
-                        out.writeUTF("--- Node " + getRouterID() + " acknowledges message from " + getSocket().getRemoteSocketAddress());
+                        out.writeUTF("--- Node " + getNodeID() + " acknowledges message from "
+                                + getSocket().getRemoteSocketAddress());
 
                         // Forward Data
                         sendMessageGivenRouterID(Integer.parseInt(packetDestination), packet);
@@ -83,7 +83,8 @@ final class ForwarderNode extends Node{
                         iOException.printStackTrace();
                     }
                 }
+
             }
-        }.start();
+        }.start(); // Listen in background via separate thread
     }
 }

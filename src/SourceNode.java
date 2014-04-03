@@ -10,28 +10,26 @@ import java.util.StringTokenizer;
  */
 final class SourceNode extends Node{
 
-    /**
+     /**
      * A lazy constructor only requiring ID, role and listening for node creation.
      *
-     * IP Address and packet rate are set to default.
-     *
-     * @param listeningPort Port to listen for incoming connections.
+     * @param routerID
+     * @param listeningPort
      */
-    public SourceNode(int listeningPort) {
-        super(1, Role.SOURCE, listeningPort);
+    public SourceNode(int routerID, int listeningPort) {
+        super(routerID, Role.SOURCE, listeningPort);
     }
 
     /**
-     * Primary node constructor.
+     * Primary source node constructor.
      *
-     * @param routerID
-     * @param role
-     * @param stringAddressOfNode
-     * @param listeningPort
-     * @param receivingPacketRate
+     * @param nodeID                The ID of the node.
+     * @param IPAddress             The IPAddress of the node.
+     * @param listeningPort         The listening port used to listen for incoming connections.
+     * @param receivingPacketRate   The packet rate at which this node can recieving incoming packets.
      */
-    public SourceNode(int routerID, Role role, String stringAddressOfNode, int listeningPort, int receivingPacketRate) {
-        super(routerID, role, stringAddressOfNode, listeningPort, receivingPacketRate);
+    public SourceNode(int nodeID, Role role, String IPAddress, int listeningPort, int receivingPacketRate) {
+        super(nodeID, role, IPAddress, listeningPort, receivingPacketRate);
     }
 
     /**

@@ -1,12 +1,24 @@
 /**
  * Created by marvinbernal on 2014-03-29.
+ *
+ * This class is a main class that provides a demonstration of the network.
+ *
+ * The basic network topology is as outlined as below:
+ *
+ *              S[1]
+ *           /        \
+ *          F[2]      F[3]
+ *           \        /
+ *              R[4]
+ *
+ * In the above topology, the source node contains routing entries to each node in the network.
+ * F[3] containsa routing entry to R[4], while F[2] does not. It is important to note that F[2] does contain
+ * a link to R[4] however, when it receves a packet it does not contain a routing entry to allow this route to R[4].
+ *
+ * You can view the networy topology in the source code below.
+ *
  */
 public class MainFunction {
-
-    /* CONSTANTS */
-
-    private static final int CLIENT_ID = 1;
-    private static final int SERVER_ID = 2;
 
     public static void main (String... arg) throws InterruptedException{
 
@@ -25,11 +37,12 @@ public class MainFunction {
         int dListeningPort = 6063;
 
         System.out.println("Creating Nodes ...");
+
         // This is using Node's lazy constructor. IP address for all notes is assumed to be 'localhost'.
-        Node aNode = new SourceNode(aListeningPort);
+        Node aNode = new SourceNode(1, aListeningPort);
         Node bNode = new ForwarderNode(2, bListeningPort);
         Node cNode = new ForwarderNode(3, cListeningPort);
-        Node dNode = new ReceiverNode(dListeningPort);
+        Node dNode = new ReceiverNode(3, dListeningPort);
 
         System.out.println("\nEstablishing physical links ...");
         aNode.addDestinationNode(bNode);
@@ -59,7 +72,5 @@ public class MainFunction {
 
         System.out.println("\nStart!");
         aNode.initialize();
-
-
     }
 }

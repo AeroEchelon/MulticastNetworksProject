@@ -2,6 +2,7 @@
  * Created by marvinbernal on 2014-03-29.
  *
  * A simple data structure containing next hop nodes, destination node and link (interface).
+ *
  */
 final class RoutingEntry {
 
@@ -9,8 +10,15 @@ final class RoutingEntry {
     private Node mDestinationNode;
     private Link mLink;
 
-    public RoutingEntry(Node nextHopNode, Node destinationNode, Link link) {
-        mNextHopNode = nextHopNode;
+    /**
+     * Constructs a Routing entry to a destination node, given a next hop node and link interface to use to connect
+     * to the next hop node.
+     *
+     * @param destinationNode
+     * @param link
+     */
+    public RoutingEntry(Link link, Node destinationNode) {
+        mNextHopNode = link.getDestinationNode();
         mDestinationNode = destinationNode;
         mLink = link;
     }
@@ -27,15 +35,11 @@ final class RoutingEntry {
         return mLink;
     }
 
-    public void setNextHopNode(Node nextHopNode) {
-        mNextHopNode = nextHopNode;
-    }
-
-    public void setDestinationNode(Node destinationNode) {
-        mDestinationNode = destinationNode;
-    }
-
     public void setLink(Link link) {
         mLink = link;
+    }
+
+    public void setNextHopNode(Node node){
+        mNextHopNode = node;
     }
 }
